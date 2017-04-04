@@ -7,6 +7,7 @@ from Crawlers import KCalc
 from Crawlers import HCalc
 from Crawlers import ICalc
 import numpy as np
+from tqdm import tqdm
 
 k,p = np.loadtxt('spectrum.csv',dtype=(float,float), delimiter=",", unpack=True)
 
@@ -45,9 +46,14 @@ def calc_var(l,r_alpha,local_qsp,hcalc,icalc):
 
 #Summation is separated for future precalculation of integrals, so we can rapidly compare power spectra.
 	accum = 0
+#	for i in range(npoints-1):
+#		for n in range(3):
+#			accum += (coeffs[n,i])*delta_h[n,i]
+
 	for i in range(npoints-1):
-		for n in range(3):
-			accum += (coeffs[n,i])*delta_h[n,i]
+		accum += (coeffs[2,i] - coeffs[1,i]*bkpts[i] + coeffs[0,i]*bkpts[i]**2)*delta_h[0,i]
+		accum += (coeffs[1,i] - 2*coeffs[0,i]*bkpts[i])*delta_h[1,i]
+		accum += coeffs[0,i]*delta_h[2,i]
 
 
 	if zflag:
@@ -74,7 +80,7 @@ def calc_covar(l,r_alpha,r_beta,local_qsp,kcalc,icalc):
 	
 #optimization FIXME
 	for i in range(npoints-1):
-		for n in range(3):
+		for n in range(0,3):
 			kpair = [bkpts[i],bkpts[i+1]]
 			if azflag and bzflag:
 				delta_k[n,i] = (1.0/(3.0+2*l+n))*(kpair[1]**(3+2*l+n) - kpair[0]**(3+2*l+n))
@@ -90,14 +96,14 @@ def calc_covar(l,r_alpha,r_beta,local_qsp,kcalc,icalc):
 
 	#Summation is separated for future precalculation of integrals, so we can rapidly compare power spectra.
 	accum = 0
-	for i in range(npoints-1):
-		for n in range(3):
-			accum += (coeffs[n,i])*delta_k[n,i]
-
 #	for i in range(npoints-1):
-#		accum += (coeffs[0,i] - coeffs[1,i]*bkpts[i] + coeffs[2,i]*bkpts[i]**2)*delta_k[0,i]
-#		accum += (coeffs[1,i] - 2*coeffs[2,i]*bkpts[i]**2)*delta_k[1,i]
-#		accum += coeffs[2,i]*delta_k[2,i]
+#		for n in range(3):
+#			accum += (coeffs[n,i])*delta_k[n,i]
+
+	for i in range(npoints-1):
+		accum += (coeffs[2,i] - coeffs[1,i]*bkpts[i] + coeffs[0,i]*bkpts[i]**2)*delta_k[0,i]
+		accum += (coeffs[1,i] - 2*coeffs[0,i]*bkpts[i])*delta_k[1,i]
+		accum += coeffs[0,i]*delta_k[2,i]
 	
 	if azflag and bzflag:
 		covar = (16.0*np.pi**2)*2**(2*l+2)*factorial(l+1)**2/(factorial(2*(l+1)))**2*accum
@@ -113,8 +119,10 @@ def calc_covar(l,r_alpha,r_beta,local_qsp,kcalc,icalc):
 #print calc_covar(0,0.5,1.0,qsp)
 #print calc_var(0,0.5,qsp)
 
-radii=np.asarray([0.0,1.0,2.0])
+#radii=np.asarray([0.0,1.0,2.0])
+radii=np.linspace(0.0,1.0,20)
 #radii=np.asarray([1.0,2.0,3.0,4.0])
+#radii=np.asarray([1.0,2.0,3.0])
 nradii=len(radii)
 
 nmodes=5
@@ -124,24 +132,25 @@ hcalc = HCalc.HCalc()
 kcalc = KCalc.KCalc()
 icalc = ICalc.ICalc()
 
-for l in range(0,nmodes):
+for l in tqdm(range(0,nmodes)):
 	cov_dict[l] = np.zeros((nradii,nradii))
 	for ri1 in range(nradii):
 		(cov_dict[l])[ri1,ri1] = calc_var(l,radii[ri1],qsp,hcalc,icalc)
 		for ri2 in range(ri1+1,nradii):
 			(cov_dict[l])[ri1,ri2] = calc_covar(l,radii[ri1],radii[ri2],qsp,kcalc,icalc)
 			(cov_dict[l])[ri2,ri1] = (cov_dict[l])[ri1,ri2]
+			pass
 print cov_dict
 
 
-w,v = LA.eig(cov_dict[0])
-print w
-print v
+#w,v = LA.eig(cov_dict[1])
+#print w
+#print v
 
 
 
 #Biasing at origin to specific value and zero gradient!
-nu=3
+nu=5
 bias_vals=[np.sqrt(4.0*np.pi)*nu,0.0]
 reduced_cov = list()
 reduced_mean = list()
