@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from numpy import linalg as LA
 from scipy.interpolate import PPoly, splrep
 from math import factorial
 from Crawlers import KCalc
@@ -116,7 +117,7 @@ radii=np.asarray([0.0,1.0,2.0])
 #radii=np.asarray([1.0,2.0,3.0,4.0])
 nradii=len(radii)
 
-nmodes=2
+nmodes=5
 
 cov_dict=dict()
 hcalc = HCalc.HCalc()
@@ -133,6 +134,12 @@ for l in range(0,nmodes):
 print cov_dict
 
 
+w,v = LA.eig(cov_dict[0])
+print w
+print v
+
+
+
 #Biasing at origin to specific value and zero gradient!
 nu=3
 bias_vals=[np.sqrt(4.0*np.pi)*nu,0.0]
@@ -146,7 +153,15 @@ for l in range(0,2):
 	s22 = cov_dict[l][1:,1:]
 
 	reduced_mean.append(s21*(1.0/s11)*bias_vals[l])
-	reduced_cov.append(s22 - np.outer(s21,s12)*(1.0/s11))
+	reduced_cov.append(s22 - np.outer(s12,s21)*(1.0/s11))
+
+#	s22 = cov_dict[l][-1,-1]
+#	s21 = cov_dict[l][0,0:-1]
+#	s12 = cov_dict[l][0:-1,0]
+#	s11 = cov_dict[l][0:-1,0:-1]
+
+#	reduced_mean.append(s12*(1.0/s22)*bias_vals[l])
+#	reduced_cov.append(s11 - np.outer(s12,s21)*(1.0/s22))
 
 
 np.savez("covariance",nmodes=nmodes, radii=radii, cov_dict=cov_dict,nu=nu,reduced_cov=reduced_cov,reduced_mean=reduced_mean)
