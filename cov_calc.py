@@ -8,6 +8,7 @@ from Crawlers import HCalc
 from Crawlers import ICalc
 import numpy as np
 from tqdm import tqdm
+from timeit import default_timer as timer
 
 k,p = np.loadtxt('spectrum.csv',dtype=(float,float), delimiter=",", unpack=True)
 
@@ -18,7 +19,10 @@ qs = splrep(k,p,k=2,s=0.0)
 qsp= PPoly.from_spline(qs,extrapolate=True)
 
 
-def calc_var(l,r_alpha,local_qsp,hcalc,icalc):
+#def calc_var(l,r_alpha,local_qsp,hcalc,icalc):
+def calc_var(l,r_alpha,local_qsp):
+	hcalc = HCalc.HCalc()
+	icalc = ICalc.ICalc()
 	#Extract breakpoints from the piecewise polynomial.
 	bkpts = local_qsp.x
 	#Extract polynomial coefficients.
@@ -67,7 +71,10 @@ def calc_var(l,r_alpha,local_qsp,hcalc,icalc):
 	return var
 
 
-def calc_covar(l,r_alpha,r_beta,local_qsp,kcalc,icalc):
+#def calc_covar(l,r_alpha,r_beta,local_qsp,kcalc,icalc):
+def calc_covar(l,r_alpha,r_beta,local_qsp):
+	kcalc = KCalc.KCalc()
+	icalc = ICalc.ICalc()
 	#Extract breakpoints from the piecewise polynomial.
 	bkpts = local_qsp.x
 	#Extract polynomial coefficients.
@@ -120,37 +127,49 @@ def calc_covar(l,r_alpha,r_beta,local_qsp,kcalc,icalc):
 #print calc_var(0,0.5,qsp)
 
 #radii=np.asarray([0.0,1.0,2.0])
-radii=np.linspace(0.0,1.0,20)
+radii=np.linspace(0.0,1000.0,200)
 #radii=np.asarray([1.0,2.0,3.0,4.0])
 #radii=np.asarray([1.0,2.0,3.0])
 nradii=len(radii)
 
-nmodes=5
+nmodes=50
 
 cov_dict=dict()
-hcalc = HCalc.HCalc()
-kcalc = KCalc.KCalc()
-icalc = ICalc.ICalc()
+#hcalc = HCalc.HCalc()
+#kcalc = KCalc.KCalc()
+#icalc = ICalc.ICalc()
+
+start=timer()
+times=[]
 
 for l in tqdm(range(0,nmodes)):
 	cov_dict[l] = np.zeros((nradii,nradii))
 	for ri1 in range(nradii):
-		(cov_dict[l])[ri1,ri1] = calc_var(l,radii[ri1],qsp,hcalc,icalc)
+		#(cov_dict[l])[ri1,ri1] = calc_var(l,radii[ri1],qsp,hcalc,icalc)
+		(cov_dict[l])[ri1,ri1] = calc_var(l,radii[ri1],qsp)
 		for ri2 in range(ri1+1,nradii):
-			(cov_dict[l])[ri1,ri2] = calc_covar(l,radii[ri1],radii[ri2],qsp,kcalc,icalc)
+			(cov_dict[l])[ri1,ri2] = calc_covar(l,radii[ri1],radii[ri2],qsp)
+			#(cov_dict[l])[ri1,ri2] = calc_covar(l,radii[ri1],radii[ri2],qsp,kcalc,icalc)
 			(cov_dict[l])[ri2,ri1] = (cov_dict[l])[ri1,ri2]
 			pass
-print cov_dict
+	end=timer()
+	times.append(end-start)
+	start=end
 
+print times
 
-#w,v = LA.eig(cov_dict[1])
-#print w
+#print cov_dict
+"""
+for l in range(nmodes):
+	print "Mode=",l
+	w,v = LA.eig(cov_dict[l])
+	print w
 #print v
+"""
 
-
-
+"""
 #Biasing at origin to specific value and zero gradient!
-nu=5
+nu=20
 bias_vals=[np.sqrt(4.0*np.pi)*nu,0.0]
 reduced_cov = list()
 reduced_mean = list()
@@ -172,5 +191,6 @@ for l in range(0,2):
 #	reduced_mean.append(s12*(1.0/s22)*bias_vals[l])
 #	reduced_cov.append(s11 - np.outer(s12,s21)*(1.0/s22))
 
-
-np.savez("covariance",nmodes=nmodes, radii=radii, cov_dict=cov_dict,nu=nu,reduced_cov=reduced_cov,reduced_mean=reduced_mean)
+"""
+np.savez("covariance",nmodes=nmodes, radii=radii, cov_dict=cov_dict)
+#np.savez("covariance",nmodes=nmodes, radii=radii, cov_dict=cov_dict,nu=nu,reduced_cov=reduced_cov,reduced_mean=reduced_mean)
