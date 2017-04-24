@@ -12,11 +12,17 @@ from timeit import default_timer as timer
 
 k,p = np.loadtxt('spectrum.csv',dtype=(float,float), delimiter=",", unpack=True)
 
+k=np.logspace(-3,2,100)
+p=np.exp(-k/10)
+
 #Fit a quadratic spline to the data.
 qs = splrep(k,p,k=2,s=0.0)
 
 #Convert this spline to a piecewise quadratic
 qsp= PPoly.from_spline(qs,extrapolate=True)
+
+
+print "NPTS: ", len(k)
 
 
 #def calc_var(l,r_alpha,local_qsp,hcalc,icalc):
@@ -84,7 +90,6 @@ def calc_covar(l,r_alpha,r_beta,local_qsp):
 
 	azflag = icalc.DetZero(r_alpha)
 	bzflag = icalc.DetZero(r_beta)
-	
 #optimization FIXME
 	for i in range(npoints-1):
 		for n in range(0,3):
@@ -97,7 +102,12 @@ def calc_covar(l,r_alpha,r_beta,local_qsp):
 				delta_k[n,i] = icalc.Calculate(kpair,l,n+l+2,r_alpha)
 			if (not azflag) and (not bzflag):
 				delta_k[n,i] = kcalc.Calculate(kpair,l,n+2,r_alpha,r_beta)	
-
+#			print "l: ", l
+#			print "n: ", n
+#			print "kpair: ",kpair
+#			print "ralpha: ",r_alpha
+#			print "rbeta: ",r_beta
+#			print "delta: ",delta_k[n,i]
 #			if(delta_k[n,i]<0):
 #				print "KBAD!!!"
 
@@ -127,12 +137,12 @@ def calc_covar(l,r_alpha,r_beta,local_qsp):
 #print calc_var(0,0.5,qsp)
 
 #radii=np.asarray([0.0,1.0,2.0])
-radii=np.linspace(0.0,1000.0,200)
+radii=np.linspace(0,10,11)
 #radii=np.asarray([1.0,2.0,3.0,4.0])
 #radii=np.asarray([1.0,2.0,3.0])
 nradii=len(radii)
 
-nmodes=50
+nmodes=1
 
 cov_dict=dict()
 #hcalc = HCalc.HCalc()
@@ -142,23 +152,23 @@ cov_dict=dict()
 start=timer()
 times=[]
 
-for l in tqdm(range(0,nmodes)):
+#for l in tqdm(range(0,nmodes)):
+for l in tqdm(range(10,11)):
+	print "l", l
 	cov_dict[l] = np.zeros((nradii,nradii))
 	for ri1 in range(nradii):
 		#(cov_dict[l])[ri1,ri1] = calc_var(l,radii[ri1],qsp,hcalc,icalc)
 		(cov_dict[l])[ri1,ri1] = calc_var(l,radii[ri1],qsp)
 		for ri2 in range(ri1+1,nradii):
 			(cov_dict[l])[ri1,ri2] = calc_covar(l,radii[ri1],radii[ri2],qsp)
-			#(cov_dict[l])[ri1,ri2] = calc_covar(l,radii[ri1],radii[ri2],qsp,kcalc,icalc)
 			(cov_dict[l])[ri2,ri1] = (cov_dict[l])[ri1,ri2]
-			pass
 	end=timer()
 	times.append(end-start)
 	start=end
 
 print times
-
-#print cov_dict
+print radii
+print cov_dict
 """
 for l in range(nmodes):
 	print "Mode=",l
