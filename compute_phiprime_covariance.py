@@ -8,6 +8,9 @@ from Crawlers import ICalc
 import numpy as np
 from tqdm import tqdm
 from timeit import default_timer as timer
+import os
+
+intpath = os.environ['INTDIR']
 
 def calc_deriv_deriv(_bkpts,_coeffs,delta_self):
 	accum = 0
@@ -38,17 +41,17 @@ def calc_deriv_phi(_bkpts,_coeffs,delta_i):
 	return covar
 
 
-spline_data = np.load("spline_down.npz")
+spline_data = np.load("spectrum/spline_down.npz")
 bkpts = spline_data['bkpts']
 coeffs = spline_data['coeffs']
 
-integral_parameters = np.load("scaled_output_05_200/integral_parameters0.npz")
+integral_parameters = np.load(intpath+"/integral_parameters0.npz")
 #modes = integral_parameters['modes']
 radii = integral_parameters['radii']
 nradii=len(radii)
 
 modes=range(1,2)
-print "MODES: ",modes
+#print "MODES: ",modes
 
 cov_dict=dict()
 
@@ -56,19 +59,19 @@ start=timer()
 times=[]
 #for l in tqdm(range(0,nmodes)):
 for l in tqdm(modes):
-	delta_dict = pickle.load(open("scaled_output_05_200/deriv_integrals"+str(l)+".p","rb"))
+	delta_dict = pickle.load(open(intpath+"/deriv_integrals"+str(l)+".p","rb"))
 	cov_dict[l] = np.zeros(nradii)
 	cov_dict[-1] = calc_deriv_deriv(bkpts,coeffs,delta_dict[(0,0)])
-	print "SHEP: ",delta_dict[(0,1)]
+	#print "SHEP: ",delta_dict[(0,1)]
 	for ri in range(0,nradii):
 		(cov_dict[l])[ri] = calc_deriv_phi(bkpts,coeffs,delta_dict[(0,ri+1)])
 	end=timer()
 	times.append(end-start)
 	start=end
 
-print times
-print radii
-print cov_dict
+print "Completion time[mode]: ",times
+#print radii
+#print cov_dict
 
 np.savez("hires_deriv_covariance",modes=modes, radii=radii)
 pickle.dump(cov_dict, open("hires_deriv_covariance.p","wb"))
