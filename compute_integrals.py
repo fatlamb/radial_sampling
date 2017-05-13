@@ -8,6 +8,9 @@ from Crawlers import ICalc
 import numpy as np
 from tqdm import tqdm
 from timeit import default_timer as timer
+import os
+
+intpath=os.environ['INTDIR']
 
 spline_degree=3 #Cubic splines
 
@@ -54,8 +57,8 @@ for l in tqdm(modes):
 		for ri2 in range(ri1+1,nradii):
 			delta_dict[(ri1,ri2)] = calc_offdiag_delta(l,radii[ri1],radii[ri2],breakpoints)
 
-	np.savez("scaled_output_05_200/integral_parameters"+str(l),bkpts=breakpoints, l=l, radii=radii)
-	pickle.dump(delta_dict, open("scaled_output_05_200/integrals"+str(l)+".p","wb"))
+#	np.savez("intpath+"/integral_parameters"+str(l),bkpts=breakpoints, l=l, radii=radii)
+#	pickle.dump(delta_dict, open(intpath+"/integrals"+str(l)+".p","wb"))
 
 	end=timer()
 	times.append(end-start)

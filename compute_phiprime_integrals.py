@@ -9,6 +9,10 @@ import numpy as np
 from tqdm import tqdm
 from timeit import default_timer as timer
 
+import os
+
+intpath = os.environ['INTDIR']
+
 spline_degree=3 #Cubic splines
 
 def calc_deriv_deriv(bkpts):
@@ -52,8 +56,8 @@ for l in tqdm(modes):
 	for ri in range(0,nradii):
 		delta_dict[(0,ri+1)] = calc_deriv_phi(radii[ri],breakpoints)
 
-	np.savez("scaled_output_05_200/deriv_integral_parameters"+str(l),bkpts=breakpoints, l=l, radii=radii)
-	pickle.dump(delta_dict, open("scaled_output_05_200/deriv_integrals"+str(l)+".p","wb"))
+#	np.savez(intpath+"/deriv_integral_parameters"+str(l),bkpts=breakpoints, l=l, radii=radii)
+#	pickle.dump(delta_dict, open(intpath+"/deriv_integrals"+str(l)+".p","wb"))
 
 	end=timer()
 	times.append(end-start)

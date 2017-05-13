@@ -21,6 +21,12 @@ def readcsv(fname, curve):
 				numarray[i]=el
 			curve.append(numarray)
 
+cov_dict = pickle.load(open("hires_covariance.p","rb"))
+f = np.load("hires_covariance.npz")
+
+deriv_cov_dict = pickle.load(open("hires_deriv_covariance.p","rb"))
+df = np.load("hires_deriv_covariance.npz")
+
 meancurve = list()
 readcsv('meangood.csv',meancurve)
 locurve = list()
@@ -28,25 +34,11 @@ readcsv('loboundgood.csv',locurve)
 hicurve = list()
 readcsv('hiboundgood.csv',hicurve)
 
-
-
-
-cov_dict = pickle.load(open("hires_covariance.p","rb"))
-f = np.load("hires_covariance.npz")
-
-deriv_cov_dict = pickle.load(open("hires_deriv_covariance.p","rb"))
-df = np.load("hires_deriv_covariance.npz")
-
 radii = f["radii"]
 nradii=len(radii)
-#sample = multivariate_normal(f["reduced "
-#cov_dict = f["cov_dict"]
-
-#print cov_dict 
 
 sample_dict=dict()
 phi_list=[]
-
 
 #Scrub negative eigenvalues
 cov_scrubbed=dict()
@@ -61,7 +53,7 @@ def scrubcov(_cov):
 for l in range(0,len(f['modes'])):
 	cov_scrubbed[l] = scrubcov(cov_dict[l])
 
-
+#Height Biasing
 nu=20
 bias_val=np.sqrt(4.0*np.pi)*nu
 reduced_cov = list()
@@ -86,32 +78,26 @@ reduced_mean.append(np.zeros(nradii))
 reduced_cov.append(s22 - np.outer(s12,s21)*(1.0/s11))
 
 
-
+#Scrub the reduced covariance matrices
 for i in range(0,2):
 	reduced_cov_scrubbed.append(scrubcov(reduced_cov[i]))
 
-
-for l in f['modes']:
-	negs=[]
-	#print "Mode=",l
-	w,v = LA.eig(cov_dict[l])
-	#print w
-	for x in w:
-		if x<0:
-			negs.append(x)
-	#print "ABS: ",np.max(np.abs(negs))
-#print v
+#for l in f['modes']:
+#	negs=[]
+#	#print "Mode=",l
+#	w,v = LA.eig(cov_dict[l])
+#	#print w
+#	for x in w:
+#		if x<0:
+#			negs.append(x)
 
 
 print "RAD: ", radii
-
 print "DDVAR:",deriv_cov_dict[-1]
 print "DCOV1:",deriv_cov_dict[1]
-
 print "COV0", cov_dict[0]
 print "COV8", cov_dict[8]
 print "COV9", cov_dict[9]
-
 
 nplots=1
 for j in range(0,nplots):
@@ -172,20 +158,6 @@ for j in range(0,nplots):
 	Phi/=(4*np.pi)
 	l_stack[l]/=(4*np.pi)
 	phi_list.append(Phi)
-"""
-colors=['red','orange','yellow','blue','purple']
-
-for l in range(0,4):
-	fig,ax = plt.subplots()
-	ax.set_ylabel(r'$\phi_{lm}$')
-	ax.set_xlabel(r'$r$')
-	#ax.plot(radii,sample_dict[(1,0)])
-	label = r'$\ell = $'+str(l+5)
-	ax.plot(radii,sample_dict[(l+5,0)],color=colors[l],label=label)
-	ax.legend(loc='upper right',prop={'size':10}, shadow=False,fancybox=True)
-
-	plt.savefig("hires_modeplots/modeplot_l="+str(l+5)+".png")
-"""
 
 for i in range(0,nplots):
 	fig,ax = plt.subplots()
@@ -196,17 +168,8 @@ for i in range(0,nplots):
 	ax.plot(locurve[0],locurve[1],lw=2,label=r'$+1\sigma$')
 	ax.plot(meancurve[0],meancurve[1],lw=2,label=r'$\langle\Phi\rangle$')
 	ax.plot(hicurve[0],hicurve[1],lw=2,label=r'$+1\sigma$')
-#	for k in range(0,i):
-#		ax.plot(radii,phi_list[k],'k')
 	ax.plot(radii,Phi,'k')
 	ax.plot(radii[0],Phi[0],'ko',ms=6)
 	ax.legend(loc='upper right',prop={'size':16}, shadow=False,fancybox=True)
-#	plt.savefig("new_env_stack/env"+str(i)+".png")
 	plt.show()
 
-
-#plt.savefig("hires_modeplots/modestack.png")
-#ax.set_yscale('log')
-#plt.show()
-
-#np.savez("radial_sample",radii=radii, sample_dict=sample_dict, nu=nu,phi_list=phi_list)

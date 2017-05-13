@@ -8,6 +8,9 @@ from Crawlers import ICalc
 import numpy as np
 from tqdm import tqdm
 from timeit import default_timer as timer
+import os
+
+intpath = os.environ['INTDIR']
 
 def calc_var(l,r_alpha,_bkpts,_coeffs,delta_h):
 
@@ -40,11 +43,11 @@ def calc_covar(l,r_alpha,r_beta,_bkpts,_coeffs,delta_k):
 	return covar
 
 
-spline_data = np.load("spline_down.npz")
+spline_data = np.load("spectrum/spline_down.npz")
 bkpts = spline_data['bkpts']
 coeffs = spline_data['coeffs']
 
-integral_parameters = np.load("scaled_output_05_200/integral_parameters0.npz")
+integral_parameters = np.load(intpath+"/integral_parameters0.npz")
 #modes = integral_parameters['modes']
 radii = integral_parameters['radii']
 nradii=len(radii)
@@ -61,7 +64,7 @@ start=timer()
 times=[]
 #for l in tqdm(range(0,nmodes)):
 for l in tqdm(modes):
-	delta_dict = pickle.load(open("scaled_output_05_200/integrals"+str(l)+".p","rb"))
+	delta_dict = pickle.load(open(intpath+"/integrals"+str(l)+".p","rb"))
 	cov_dict[l] = np.zeros((nradii,nradii))
 	for ri1 in range(nradii):
 		(cov_dict[l])[ri1,ri1] = calc_var(l,radii[ri1],bkpts,coeffs,delta_dict[(ri1,ri1)])
@@ -72,9 +75,9 @@ for l in tqdm(modes):
 	times.append(end-start)
 	start=end
 
-print times
-print radii
-print cov_dict
+print "Completion time[mode]: ",times
+#print radii
+#print cov_dict
 
 np.savez("hires_covariance",modes=modes, radii=radii)
 pickle.dump(cov_dict, open("hires_covariance.p","wb"))
