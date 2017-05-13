@@ -79,5 +79,5 @@ print "Completion time[mode]: ",times
 #print radii
 #print cov_dict
 
-np.savez("hires_covariance",modes=modes, radii=radii)
-pickle.dump(cov_dict, open("hires_covariance.p","wb"))
+np.savez("covariances/hires_covariance",modes=modes, radii=radii)
+pickle.dump(cov_dict, open("covariances/hires_covariance.p","wb"))

@@ -21,11 +21,11 @@ def readcsv(fname, curve):
 				numarray[i]=el
 			curve.append(numarray)
 
-cov_dict = pickle.load(open("hires_covariance.p","rb"))
-f = np.load("hires_covariance.npz")
+cov_dict = pickle.load(open("covariances/hires_covariance.p","rb"))
+f = np.load("covariances/hires_covariance.npz")
 
-deriv_cov_dict = pickle.load(open("hires_deriv_covariance.p","rb"))
-df = np.load("hires_deriv_covariance.npz")
+deriv_cov_dict = pickle.load(open("covariances/hires_deriv_covariance.p","rb"))
+df = np.load("covariances/hires_deriv_covariance.npz")
 
 meancurve = list()
 readcsv('meangood.csv',meancurve)
