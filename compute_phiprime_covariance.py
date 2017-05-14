@@ -20,7 +20,7 @@ def calc_deriv_deriv(_bkpts,_coeffs,delta_self):
 		accum += (_coeffs[1,i] - 3*_coeffs[0,i]*_bkpts[i])*delta_self[2,i]
 		accum += (_coeffs[0,i])*delta_self[3,i]
 
-	var = (16.0*np.pi**2)*accum
+	var = (((4.0*np.pi)**2)/9.0)*accum
 
 	if var<0:
 		print "NEGAUTOVAR"
@@ -36,7 +36,7 @@ def calc_deriv_phi(_bkpts,_coeffs,delta_i):
 		accum += (_coeffs[1,i] - 3*_coeffs[0,i]*_bkpts[i])*delta_i[2,i]
 		accum += (_coeffs[0,i])*delta_i[3,i]
 	
-		covar = (16.0*np.pi**2)*accum
+	covar = (((4.0*np.pi)**2)/3.0)*accum
 
 	return covar
 

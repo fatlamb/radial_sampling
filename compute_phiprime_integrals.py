@@ -22,7 +22,7 @@ def calc_deriv_deriv(bkpts):
 	for i in range(npoints-1):
 		for n in range(spline_degree+1):
 			kpair = [bkpts[i],bkpts[i+1]]
-			delta_self[n,i] =  (1.0/(5.0+n))*(kpair[1]**(5+n)-kpair[0]**(5+n))
+			delta_self[n,i] =  (1.0/(3.0+n))*(kpair[1]**(3+n)-kpair[0]**(3+n))
 
 	return delta_self
 
@@ -35,7 +35,7 @@ def calc_deriv_phi(r_alpha,bkpts):
 	for i in range(npoints-1):
 		for n in range(spline_degree+1):
 			kpair = [bkpts[i],bkpts[i+1]]
-			delta_i[n,i] = icalc.Calculate(kpair,1,n+3,r_alpha)
+			delta_i[n,i] = icalc.Calculate(kpair,1,n+1,r_alpha)
 
 	return delta_i
 

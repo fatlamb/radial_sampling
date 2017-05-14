@@ -23,7 +23,7 @@ def calc_diag_delta(l,r_alpha,bkpts):
 	for i in range(npoints-1):
 		for n in range(spline_degree+1):
 			kpair = [bkpts[i],bkpts[i+1]]
-			delta_h[n,i] = hcalc.Calculate(kpair,l,n+2,r_alpha)
+			delta_h[n,i] = hcalc.Calculate(kpair,l,n,r_alpha)
 
 	return delta_h
 
@@ -36,7 +36,7 @@ def calc_offdiag_delta(l,r_alpha,r_beta,bkpts):
 	for i in range(npoints-1):
 		for n in range(spline_degree+1):
 			kpair = [bkpts[i],bkpts[i+1]]
-			delta_k[n,i] = kcalc.Calculate(kpair,l,n+2,r_alpha,r_beta)	
+			delta_k[n,i] = kcalc.Calculate(kpair,l,n,r_alpha,r_beta)	
 	return delta_k
 
 
